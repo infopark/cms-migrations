@@ -1,0 +1,10 @@
+version: '2.1'
+services:
+  # For testing
+  mysql:
+    image: mariadb:10.4
+    command: --max_allowed_packet=1G
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"
