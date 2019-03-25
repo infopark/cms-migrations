@@ -1,0 +1,18 @@
+desc "Build docker image for Fiona"
+task :build do
+  sh "docker build -t fiona:latest -f Dockerfile ."
+end
+
+desc "Start a shell within the fiona docker container"
+task :shell => ["license.xml", "cmdb.xml"] do
+  sh "docker-compose up -d"
+  sh "docker-compose run --rm fiona bash"
+end
+
+file "license.xml" do
+  raise "Place a valid license.xml right here: #{Dir.pwd}/license.xml"
+end
+
+file "cmdb.xml" do
+  raise "Copy cmdb.xml.example to cmdb.xml and modify the <database> tag to your needs"
+end
