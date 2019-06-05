@@ -1,6 +1,7 @@
 require "addressable/uri"
 require "net/http"
 require "net/http/post/multipart"
+require "openssl"
 
 class RestApi
   class ScrivitoError < StandardError ; end
