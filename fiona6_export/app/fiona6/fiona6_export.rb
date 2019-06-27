@@ -147,6 +147,10 @@ class Fiona6Export
       when "linklist"
         attrs[new_attr_name] ||= fiona8_attr_pair("linklist",
             obj[attr_name].to_a.map{|link| export_link(link) })
+      when "html"
+        attrs[new_attr_name] ||= fiona8_attr_pair("html", export_html(obj, obj[attr_name]))
+      else
+        puts "unknown attr type: #{t}"
       end
     end
     attrs.compact
@@ -176,5 +180,25 @@ class Fiona6Export
       "title" => link.title,
       "url" => link.url,
     }.compact
+  end
+
+  def export_html(obj, html)
+    return unless html.present?
+    link_map = obj.text_links.each_with_object({}) do |link, map|
+      map[link.id.to_s] = link
+    end
+    html.gsub(/\binternallink:(\d+)\b/) do
+      link = link_map[$1.to_s]
+      if link.blank?
+        ""
+      else
+        if link.external?
+          link.url.gsub("external:")
+        else
+          dest_obj_id = link.destination_object_id
+          "objid:#{fiona8_id(dest_obj_id)}"
+        end
+      end
+    end
   end
 end
