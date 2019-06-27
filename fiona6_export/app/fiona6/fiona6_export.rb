@@ -16,6 +16,24 @@ class Fiona6Export
   end
 
   def export(config:, dir_name:)
+    conf = JSON.load(File.read(config))
+    renamed_obj_classes = conf["rename_obj_classes"] || {}
+    renamed_attrs = conf["rename_attributes"] || {}
+
+    raise "file '#{dir_name}' exists" if File.exist?(dir_name)
+    FileUtils.mkdir_p(dir_name)
+
+    obj_count = 0
+    File.open(File.join(dir_name, "objs.json"), "w") do |file|
+      get_objs.each do |obj|
+        obj_attrs = export_attrs(obj, dir_name, renamed_obj_classes, renamed_attrs)
+        puts "Exporting: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})"
+        file.write(JSON.generate(obj_attrs))
+        file.write("\n")
+        obj_count += 1
+      end
+    end
+    puts "Exported #{obj_count} objects to #{dir_name}/objs.json"
   end
 
   private
@@ -100,5 +118,38 @@ class Fiona6Export
 
   def find_duplicates(array)
     array.select {|item| array.count(item) > 1 }.uniq
+  end
+
+  def get_objs
+    Obj.all
+  end
+
+  def export_attrs(obj, dir_name, renamed_obj_classes, renamed_attrs)
+    attrs = {
+      "_id" => fiona8_id(obj.id),
+      "_last_changed" => fiona8_attr_pair("date", obj.last_changed_before_type_cast),
+      "_obj_class" => renamed_obj_classes[obj.obj_class] || obj.obj_class,
+      "_path" => obj.path,
+      "_permalink" => fiona8_attr_pair("string", obj.permalink),
+      "permitted_groups" => fiona8_attr_pair("stringlist", obj.permitted_groups),
+      "suppress_export" => fiona8_attr_pair("string", (obj.suppress_export == 1 ? "yes" : "no")),
+      "title" => fiona8_attr_pair("string", obj.title),
+      "valid_from" => fiona8_attr_pair("date", obj.valid_from_before_type_cast),
+      "valid_until" => fiona8_attr_pair("date", obj.valid_until_before_type_cast),
+    }
+  end
+
+  def fiona8_id(id)
+    return nil unless id
+    case id
+    when /\A[0-9a-f]{16}\z/
+      id
+    else
+      id.to_s.rjust(16, "0")
+    end
+  end
+
+  def fiona8_attr_pair(type, value)
+    [type, value] if value.present?
   end
 end
