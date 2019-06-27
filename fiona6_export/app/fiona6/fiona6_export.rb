@@ -137,7 +137,9 @@ class Fiona6Export
       "valid_from" => fiona8_attr_pair("date", obj.valid_from_before_type_cast),
       "valid_until" => fiona8_attr_pair("date", obj.valid_until_before_type_cast),
     }
-    unless obj.binary?
+    if obj.binary?
+      attrs["blob"] = fiona8_attr_pair("binary", export_binary_body(obj, dir_name))
+    else
       attrs["body"] = fiona8_attr_pair("html", export_html(obj, obj["body"]))
     end
     obj.attr_defs.each do |attr_name, attr_def|
@@ -214,5 +216,15 @@ class Fiona6Export
   def export_date(date)
     return unless date
     date.to_iso
+  end
+
+  def export_binary_body(obj, dir_name)
+    filepath = obj.body_data_path
+    return unless filepath
+    out_filename = "#{fiona8_id(obj.id)}-#{obj.filename}"
+    FileUtils.cp(filepath, File.join(dir_name, out_filename))
+    {
+      "file" => out_filename,
+    }
   end
 end
