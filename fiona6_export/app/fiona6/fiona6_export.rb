@@ -144,6 +144,9 @@ class Fiona6Export
         attrs[new_attr_name] ||= fiona8_attr_pair("string", obj[attr_name])
       when "multienum"
         attrs[new_attr_name] ||= fiona8_attr_pair("stringlist", obj[attr_name])
+      when "linklist"
+        attrs[new_attr_name] ||= fiona8_attr_pair("linklist",
+            obj[attr_name].to_a.map{|link| export_link(link) })
       end
     end
     attrs.compact
@@ -161,5 +164,17 @@ class Fiona6Export
 
   def fiona8_attr_pair(type, value)
     [type, value] if value.present?
+  end
+
+  def export_link(link)
+    return unless link
+    {
+      "fragment" => link.fragment,
+      "obj_id" => fiona8_id(link.destination_object_id),
+      "query" => link.query,
+      "target" => link.target,
+      "title" => link.title,
+      "url" => link.url,
+    }.compact
   end
 end
