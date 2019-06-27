@@ -17,8 +17,21 @@ Bundler version 1.x, e.g. 1.16.5.
 
 ## Usage
 
-The specified export directory must not exist. It will be created.
+```shell
+rails runner 'Fiona6Export.new.analyze(output_config: "export-config.json")'
+```
+
+This command analyzes obj classes and attributes for compatibility with Fiona 8 and Scrivito. For
+example, Fiona 8/Scrivito does not allow to have attributes with uppercase letters or a leading
+underscore. Hence those attributes need to be renamed. The analyze command suggests new attribute
+names. It writes out a configuration file `export-config.json` with this info. Please edit this file
+if you're not happy with the suggestions.
+
 
 ```shell
-rails runner 'Fiona6Export.new.export(dir_name: "export")'
+rails runner 'Fiona6Export.new.export(config: "export-config.json", dir_name: "export")'
 ```
+
+This command exports the content of all obj (except templates) to the specified directory. The
+directory must not exist. It will be created. The command also reads in the `export-config.json`
+from the analyze run and renames attributes as specified in this file.
