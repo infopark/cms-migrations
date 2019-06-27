@@ -14,10 +14,34 @@ Rails.
 A MySQL connection. Edit `MYSQL_HOST`, `MYSQL_CMS_DB`, `MYSQL_CMS_USER`, `MYSQL_CMS_PASSWORD` and `MYSQL_PORT` in
 `.env`.
 
+Change the `FIONA7_INSTANCE` variable in `.env` if needd.
+
 ## Usage
 
 The specified export directory must not exist. It will be created.
 
 ```shell
-rails runner 'Fiona7Export.new.export(dir_name: "export", edited: false)'
+rails runner 'Fiona7Export.new.export(dir_name: "export", options: {path: "/", edited: false})'
+```
+
+This will export all objects in your Fiona7 system.
+
+## Partial export
+
+If you want to export only specific objects, you can run
+
+```shell
+rails runner 'Fiona7Export.new.export(dir_name: "export", options: {id: "id", edited: false})'
+```
+
+To export an subtree, use the obj path like:
+
+```shell
+rails runner 'Fiona7Export.new.export(dir_name: "export", options: {path: "/path/to/obj", edited: false})'
+```
+
+Exporting all objs by type, if you onle want to migrate e.g. all User Objects, you can use:
+
+```shell
+rails runner 'Fiona7Export.new.export(dir_name: "export", options: {obj_class: "User", edited: false})'
 ```
