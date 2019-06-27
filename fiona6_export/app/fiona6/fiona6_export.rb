@@ -137,6 +137,9 @@ class Fiona6Export
       "valid_from" => fiona8_attr_pair("date", obj.valid_from_before_type_cast),
       "valid_until" => fiona8_attr_pair("date", obj.valid_until_before_type_cast),
     }
+    unless obj.binary?
+      attrs["body"] = fiona8_attr_pair("html", export_html(obj, obj["body"]))
+    end
     obj.attr_defs.each do |attr_name, attr_def|
       new_attr_name = (renamed_attrs[obj.obj_class] || {})[attr_name] || attr_name
       case t = attr_def["type"]
