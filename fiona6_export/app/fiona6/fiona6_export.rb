@@ -152,6 +152,8 @@ class Fiona6Export
             obj[attr_name].to_a.map{|link| export_link(link) })
       when "html"
         attrs[new_attr_name] ||= fiona8_attr_pair("html", export_html(obj, obj[attr_name]))
+      when "date"
+        attrs[new_attr_name] ||= fiona8_attr_pair("date", export_date(obj[attr_name]))
       when "signature"
         # ignore
       else
@@ -205,5 +207,10 @@ class Fiona6Export
         end
       end
     end
+  end
+
+  def export_date(date)
+    return unless date
+    date.to_iso
   end
 end
