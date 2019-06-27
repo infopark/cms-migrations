@@ -154,10 +154,12 @@ class Fiona6Export
         attrs[new_attr_name] ||= fiona8_attr_pair("html", export_html(obj, obj[attr_name]))
       when "date"
         attrs[new_attr_name] ||= fiona8_attr_pair("date", export_date(obj[attr_name]))
+      when "markdown"
+        raise "support for markdown attributes not implemented yet"
       when "signature"
         # ignore
       else
-        puts "unknown attr type: #{t}"
+        raise "unknown attr type: #{t}"
       end
     end
     attrs.compact
