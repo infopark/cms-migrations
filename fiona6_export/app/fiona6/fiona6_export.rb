@@ -152,6 +152,8 @@ class Fiona6Export
             obj[attr_name].to_a.map{|link| export_link(link) })
       when "html"
         attrs[new_attr_name] ||= fiona8_attr_pair("html", export_html(obj, obj[attr_name]))
+      when "signature"
+        # ignore
       else
         puts "unknown attr type: #{t}"
       end
