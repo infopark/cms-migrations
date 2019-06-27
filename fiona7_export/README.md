@@ -11,7 +11,7 @@ Rails.
 
 ## Requirements
 
-A MySQL connection. Edit `MYSQL_HOST`, `MYSQL_CMS_DB`, `MYSQL_CMS_USER`, `MYSQL_CMS_PASSWORD` in
+A MySQL connection. Edit `MYSQL_HOST`, `MYSQL_CMS_DB`, `MYSQL_CMS_USER`, `MYSQL_CMS_PASSWORD` and `MYSQL_PORT` in
 `.env`.
 
 ## Usage
