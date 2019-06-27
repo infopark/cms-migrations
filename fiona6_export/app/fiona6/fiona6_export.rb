@@ -137,6 +137,16 @@ class Fiona6Export
       "valid_from" => fiona8_attr_pair("date", obj.valid_from_before_type_cast),
       "valid_until" => fiona8_attr_pair("date", obj.valid_until_before_type_cast),
     }
+    obj.attr_defs.each do |attr_name, attr_def|
+      new_attr_name = (renamed_attrs[obj.obj_class] || {})[attr_name] || attr_name
+      case t = attr_def["type"]
+      when "string", "text", "enum"
+        attrs[new_attr_name] ||= fiona8_attr_pair("string", obj[attr_name])
+      when "multienum"
+        attrs[new_attr_name] ||= fiona8_attr_pair("stringlist", obj[attr_name])
+      end
+    end
+    attrs.compact
   end
 
   def fiona8_id(id)
