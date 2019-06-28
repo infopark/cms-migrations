@@ -35,3 +35,10 @@ rails runner 'Fiona6Export.new.export(config: "export-config.json", dir_name: "e
 This command exports the content of all obj (except templates) to the specified directory. The
 directory must not exist. It will be created. The command also reads in the `export-config.json`
 from the analyze run and renames attributes as specified in this file.
+
+```shell
+rails runner 'Fiona6Export.new.export_code(config: "export-config.json", dir_name: "export-code")'
+```
+
+This command exports Javascript files that you can use to get started with Scrivito/Fiona 8. The
+files include obj class definitions and editing configurations.

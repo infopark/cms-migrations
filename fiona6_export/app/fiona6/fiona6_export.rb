@@ -1,5 +1,6 @@
 require "addressable/uri"
 require "fileutils"
+require "ostruct"
 
 class Fiona6Export
   def analyze(output_config:)
@@ -34,6 +35,25 @@ class Fiona6Export
       end
     end
     puts "Exported #{obj_count} objects to #{dir_name}/objs.json"
+  end
+
+  def export_code(config:, dir_name:)
+    conf = JSON.load(File.read(config))
+    renamed_obj_classes = conf["rename_obj_classes"] || {}
+    renamed_attrs = conf["rename_attributes"] || {}
+
+    raise "file '#{dir_name}' exists" if File.exist?(dir_name)
+    FileUtils.mkdir_p(dir_name)
+
+    generate_obj_class_definitions(renamed_obj_classes, renamed_attrs).each do |defi|
+      filepath = File.join(dir_name, defi["filename"])
+      FileUtils.mkdir_p(File.dirname(filepath))
+      File.open(filepath, "w") do |file|
+        file.write(defi["content"])
+      end
+    end
+
+    puts "Exported code to #{dir_name}"
   end
 
   private
@@ -226,5 +246,64 @@ class Fiona6Export
     {
       "file" => out_filename,
     }
+  end
+
+  def generate_obj_class_definitions(renamed_obj_classes, renamed_attrs)
+    defs = []
+    ObjClass.all.order(:obj_class_name).each do |obj_class|
+      name = obj_class.obj_class_name
+      type = ObjClass.find_by_obj_class_name(name).obj_type
+      name = renamed_obj_classes[name] || name
+      defs.concat(generate_obj_class_definition(
+        name, type, obj_class.attrs.order(:attribute_name), renamed_attrs[name] || {}))
+    end
+    defs
+  end
+
+  def generate_obj_class_definition(obj_class_name, obj_class_type, attrs, renamed_attrs)
+    attr_names_to_types = {}
+    case obj_class_type
+    when "image", "generic"
+      attr_names_to_types["blob"] = "binary"
+    else
+      attr_names_to_types["body"] = "html"
+    end
+
+    attrs.each do |attr|
+      attr_name = attr.attribute_name
+      blob_mapping = BlobMapping.find_by_blob_name("#{attr_name}.jsonAttributeDict")
+      attr_dict = JSON.parse(RailsConnector::Blob.find(blob_mapping.fingerprint).data)
+      attr_name = renamed_attrs[attr_name] || attr_name
+      attr_name = attr_name[0] + attr_name.camelcase[1..-1]
+      attr_names_to_types[attr_name] =
+        case t = attr.attribute_type
+        when "text"
+          "string"
+        when "string", "html", "date", "linklist"
+          t
+        when "enum", "multienum"
+          [t, { values: attr_dict['values'] || [] }]
+        else
+          raise "unknown attr type: #{t}"
+        end
+    end
+
+    [
+      {
+        "filename" => "src/Objs/#{obj_class_name}/#{obj_class_name}ObjClass.js",
+        "content" => render_tmpl(obj_class_tmpl, {
+          "class_name" => obj_class_name,
+          "attrs" => attr_names_to_types,
+        }),
+      },
+    ]
+  end
+
+  def obj_class_tmpl
+    @obj_class_tmpl ||= ERB.new(File.read(Rails.root + "app/fiona6/FooObjClass.js.erb"))
+  end
+
+  def render_tmpl(tmpl, vars)
+    tmpl.result(OpenStruct.new(vars).instance_eval { binding })
   end
 end
