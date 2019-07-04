@@ -297,6 +297,8 @@ class FionaExport
       attr_names_to_type_defs["body"] = "html"
     end
 
+    attr_names_to_editing_configs = {}
+
     attrs.each do |attr|
       attr_name = attr.attribute_name
       blob_mapping = BlobMapping.find_by_blob_name("#{attr_name}.jsonAttributeDict")
@@ -304,6 +306,8 @@ class FionaExport
       attr_name = attr_mappings[attr_name]
       next unless attr_name
       attr_name = attr_name[0] + attr_name.camelcase[1..-1]
+      enum_values = attr_dict['values'] || []
+
       attr_names_to_type_defs[attr_name] =
         case t = attr.attribute_type
         when "text"
@@ -311,7 +315,22 @@ class FionaExport
         when "string", "html", "date", "linklist"
           t
         when "enum", "multienum"
-          [t, { values: attr_dict['values'] || [] }]
+          [t, { values: enum_values }]
+        else
+          raise "unknown attr type: #{t}"
+        end
+
+      attr_names_to_editing_configs[attr_name] =
+        case t = attr.attribute_type
+        when "text", "string", "html", "date", "linklist"
+          {
+            "title" => attr_name.titleize,
+          }
+        when "enum", "multienum"
+          {
+            "title" => attr_name.titleize,
+            "values" => enum_values.map {|v| {value: v, title: v.titleize}},
+          }
         else
           raise "unknown attr type: #{t}"
         end
@@ -325,11 +344,22 @@ class FionaExport
           "attrs" => attr_names_to_type_defs,
         }),
       },
+      {
+        "filename" => "src/Objs/#{obj_class_name}/#{obj_class_name}EditingConfig.js",
+        "content" => render_tmpl(editing_config_tmpl, {
+          "class_name" => obj_class_name,
+          "attrs" => attr_names_to_editing_configs,
+        }),
+      },
     ]
   end
 
   def obj_class_tmpl
     @obj_class_tmpl ||= ERB.new(File.read(Rails.root + "templates/ObjClass.js.erb"))
+  end
+
+  def editing_config_tmpl
+    @editing_config_tmpl ||= ERB.new(File.read(Rails.root + "templates/EditingConfig.js.erb"))
   end
 
   def render_tmpl(tmpl, vars)
