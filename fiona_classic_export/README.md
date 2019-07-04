@@ -18,7 +18,7 @@ Bundler version 1.x, e.g. 1.16.5.
 ## Usage
 
 ```shell
-rails runner 'Fiona6Export.new.analyze(output_config: "export-config.json")'
+rails runner 'FionaExport.new.analyze(output_config: "export-config.json")'
 ```
 
 This command analyzes obj classes and attributes for compatibility with Fiona 8 and Scrivito. For
@@ -29,7 +29,7 @@ if you're not happy with the suggestions.
 
 
 ```shell
-rails runner 'Fiona6Export.new.export(config: "export-config.json", dir_name: "export")'
+rails runner 'FionaExport.new.export(config: "export-config.json", dir_name: "export")'
 ```
 
 This command exports the content of all obj (except templates) to the specified directory. The
@@ -37,7 +37,7 @@ directory must not exist. It will be created. The command also reads in the `exp
 from the analyze run and renames attributes as specified in this file.
 
 ```shell
-rails runner 'Fiona6Export.new.export_code(config: "export-config.json", dir_name: "export-code")'
+rails runner 'FionaExport.new.export_code(config: "export-config.json", dir_name: "export-code")'
 ```
 
 This command exports Javascript files that you can use to get started with Scrivito/Fiona 8. The

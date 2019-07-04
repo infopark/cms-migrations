@@ -6,7 +6,7 @@ require "active_record/railtie"
 
 Bundler.require(*Rails.groups)
 
-module Fiona6ExportApp
+module FionaExportApp
   class Application < Rails::Application
   end
 end

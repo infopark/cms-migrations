@@ -2,7 +2,7 @@ require "addressable/uri"
 require "fileutils"
 require "ostruct"
 
-class Fiona6Export
+class FionaExport
   def analyze(output_config:)
     renamed_obj_classes = analyze_obj_classes
     renamed_attributes_per_obj_class = analyze_attributes
@@ -329,7 +329,7 @@ class Fiona6Export
   end
 
   def obj_class_tmpl
-    @obj_class_tmpl ||= ERB.new(File.read(Rails.root + "app/fiona6/FooObjClass.js.erb"))
+    @obj_class_tmpl ||= ERB.new(File.read(Rails.root + "app/fiona/ObjClass.js.erb"))
   end
 
   def render_tmpl(tmpl, vars)
