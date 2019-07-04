@@ -17,9 +17,7 @@ class Fiona6Export
   end
 
   def export(config:, dir_name:)
-    conf = JSON.load(File.read(config))
-    renamed_obj_classes = conf["rename_obj_classes"] || {}
-    renamed_attrs = conf["rename_attributes"] || {}
+    obj_class_mappings, attr_mappings = load_rtc(config)
 
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
@@ -27,7 +25,7 @@ class Fiona6Export
     obj_count = 0
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
       get_objs.each do |obj|
-        obj_attrs = export_attrs(obj, dir_name, renamed_obj_classes, renamed_attrs)
+        obj_attrs = export_attrs(obj, dir_name, obj_class_mappings, attr_mappings)
         puts "Exporting: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})"
         file.write(JSON.generate(obj_attrs))
         file.write("\n")
@@ -38,14 +36,12 @@ class Fiona6Export
   end
 
   def export_code(config:, dir_name:)
-    conf = JSON.load(File.read(config))
-    renamed_obj_classes = conf["rename_obj_classes"] || {}
-    renamed_attrs = conf["rename_attributes"] || {}
+    obj_class_mappings, attr_mappings = load_rtc(config)
 
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
 
-    generate_obj_class_definitions(renamed_obj_classes, renamed_attrs).each do |defi|
+    generate_obj_class_definitions(obj_class_mappings, attr_mappings).each do |defi|
       filepath = File.join(dir_name, defi["filename"])
       FileUtils.mkdir_p(File.dirname(filepath))
       File.open(filepath, "w") do |file|
@@ -155,11 +151,31 @@ class Fiona6Export
     Obj.all
   end
 
-  def export_attrs(obj, dir_name, renamed_obj_classes, renamed_attrs)
+  def load_rtc(config)
+    conf = JSON.load(File.read(config))
+    renamed_obj_classes = conf["rename_obj_classes"] || {}
+    renamed_attrs = conf["rename_attributes"] || {}
+
+    obj_class_mappings = {}
+    attr_mappings = {}
+    get_obj_classes.each do |obj_class|
+      name = obj_class.obj_class_name
+      obj_class_mappings[name] = renamed_obj_classes[name] || name
+      attr_mappings[name] = {}
+      get_attrs(obj_class).each do |attr|
+        attr_name = attr.attribute_name
+        attr_mappings[name][attr_name] = (renamed_attrs[name] || {})[attr_name] || attr_name
+      end
+    end
+
+    [obj_class_mappings, attr_mappings]
+  end
+
+  def export_attrs(obj, dir_name, obj_class_mappings, attr_mappings)
     attrs = {
       "_id" => fiona8_id(obj.id),
       "_last_changed" => fiona8_attr_pair("date", obj.last_changed_before_type_cast),
-      "_obj_class" => renamed_obj_classes[obj.obj_class] || obj.obj_class,
+      "_obj_class" => obj_class_mappings.fetch(obj.obj_class),
       "_path" => obj.path,
       "_permalink" => fiona8_attr_pair("string", obj.permalink),
       "permitted_groups" => fiona8_attr_pair("stringlist", obj.permitted_groups),
@@ -174,7 +190,8 @@ class Fiona6Export
       attrs["body"] = fiona8_attr_pair("html", export_html(obj, obj["body"]))
     end
     obj.attr_defs.each do |attr_name, attr_def|
-      new_attr_name = (renamed_attrs[obj.obj_class] || {})[attr_name] || attr_name
+      new_attr_name = attr_mappings.fetch(obj.obj_class)[attr_name]
+      next unless new_attr_name
       case t = attr_def["type"]
       when "string", "text", "enum"
         attrs[new_attr_name] ||= fiona8_attr_pair("string", obj[attr_name])
@@ -259,19 +276,19 @@ class Fiona6Export
     }
   end
 
-  def generate_obj_class_definitions(renamed_obj_classes, renamed_attrs)
+  def generate_obj_class_definitions(obj_class_mappings, attr_mappings)
     defs = []
-    ObjClass.all.order(:obj_class_name).each do |obj_class|
+    get_obj_classes.each do |obj_class|
       name = obj_class.obj_class_name
       type = ObjClass.find_by_obj_class_name(name).obj_type
-      name = renamed_obj_classes[name] || name
+      name = obj_class_mappings.fetch(name)
       defs.concat(generate_obj_class_definition(
-        name, type, get_attrs(obj_class), renamed_attrs[name] || {}))
+        name, type, get_attrs(obj_class), attr_mappings.fetch(name)))
     end
     defs
   end
 
-  def generate_obj_class_definition(obj_class_name, obj_class_type, attrs, renamed_attrs)
+  def generate_obj_class_definition(obj_class_name, obj_class_type, attrs, attr_mappings)
     attr_names_to_types = {}
     case obj_class_type
     when "image", "generic"
@@ -284,7 +301,8 @@ class Fiona6Export
       attr_name = attr.attribute_name
       blob_mapping = BlobMapping.find_by_blob_name("#{attr_name}.jsonAttributeDict")
       attr_dict = JSON.parse(RailsConnector::Blob.find(blob_mapping.fingerprint).data)
-      attr_name = renamed_attrs[attr_name] || attr_name
+      attr_name = attr_mappings[attr_name]
+      next unless attr_name
       attr_name = attr_name[0] + attr_name.camelcase[1..-1]
       attr_names_to_types[attr_name] =
         case t = attr.attribute_type
