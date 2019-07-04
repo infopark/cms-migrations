@@ -329,7 +329,7 @@ class FionaExport
   end
 
   def obj_class_tmpl
-    @obj_class_tmpl ||= ERB.new(File.read(Rails.root + "app/fiona/ObjClass.js.erb"))
+    @obj_class_tmpl ||= ERB.new(File.read(Rails.root + "templates/ObjClass.js.erb"))
   end
 
   def render_tmpl(tmpl, vars)
