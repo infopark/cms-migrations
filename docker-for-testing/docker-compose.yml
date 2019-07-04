@@ -1,0 +1,20 @@
+version: "3"
+services:
+  #
+  # For development and testing
+  #
+
+  fiona:
+    image: fiona # build fiona image with `rake build`
+    command: "true" # run a bash shell within this container using `rake shell`
+    volumes:
+      - ./license.xml:/fiona/instance/default/config/license.xml
+      - ./cmdb.xml:/fiona/instance/default/config/cmdb.xml
+
+  mysql:
+    image: mariadb:10.4
+    command: --max_allowed_packet=1G
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "3306:3306"

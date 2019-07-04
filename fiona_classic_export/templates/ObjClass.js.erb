@@ -1,0 +1,10 @@
+import * as Scrivito from "scrivito";
+
+const <%= class_name %> = Scrivito.provideObjClass("<%= class_name %>", {
+  attributes: {
+    <% attrs.each do |attr_name, attr_def| %><%= attr_name%>: <%= attr_def.to_json %>,
+    <% end %>
+  },
+});
+
+export default <%= class_name %>;

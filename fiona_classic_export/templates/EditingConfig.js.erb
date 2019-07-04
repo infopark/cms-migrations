@@ -1,0 +1,13 @@
+import * as Scrivito from "scrivito";
+
+Scrivito.provideEditingConfig("<%= class_name %>", {
+  title: "<%= class_name.titleize %>",
+  attributes: {
+    <% attrs.each do |attr_name, attr_editing_config| %><%= attr_name%>: {
+      title: "<%= attr_editing_config["title"] %>",
+      <% if attr_editing_config["values"] %>values: <%= attr_editing_config["values"].to_json %>,<% end %>
+    },
+    <% end %>
+  },
+  properties: <%= attrs.keys.to_json %>,
+});

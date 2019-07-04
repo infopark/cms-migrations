@@ -1,0 +1,5 @@
+cmdb.xml*
+docker-compose.yml
+Dockerfile
+license.xml
+Rakefile

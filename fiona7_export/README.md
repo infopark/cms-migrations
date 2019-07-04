@@ -1,6 +1,6 @@
-# Fiona 7 Exporter
+# Fiona 7 with Scrivito UI Exporter
 
-**Only for Fiona 7 with Scrivito SDK (hybrid) in stand-alone mode.**
+**Only for Fiona 7 with Scrivito UI (hybrid) in stand-alone mode.**
 
 The Fiona 7 exporter exports the Fiona 7 content in a format that is suitable for importing into
 Fiona 8 or Scrivito. If edited is set to true, the export will contain the edited versions of

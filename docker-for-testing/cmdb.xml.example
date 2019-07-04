@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<configuration>
+  <adaptor>mysql</adaptor>
+  <server>mysql</server>
+  <database>my-db-name</database>
+  <user>root</user>
+  <password>root</password>
+  <storeBlobsInDatabase>true</storeBlobsInDatabase>
+  <port>3306</port>
+</configuration>
