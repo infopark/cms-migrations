@@ -141,7 +141,10 @@ class Fiona6Export
   end
 
   def get_obj_classes
-    ObjClass.where.not(obj_type: "template").order(:obj_class_name)
+    obj_classes = ObjClass.where.not(obj_type: "template").order(:obj_class_name)
+    obj_classes.reject do |obj_class|
+      Obj.where(obj_class: obj_class.obj_class_name).count == 0
+    end
   end
 
   def get_objs
