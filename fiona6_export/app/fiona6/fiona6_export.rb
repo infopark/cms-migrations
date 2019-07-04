@@ -62,7 +62,7 @@ class Fiona6Export
   def analyze_obj_classes
     obj_class_mappings = [] # we'll collect pairs [old name, new name]
 
-    ObjClass.all.order(:obj_class_name).each do |obj_class|
+    get_obj_classes.each do |obj_class|
       old_name = obj_class.obj_class_name
       new_name = determine_new_obj_class_name(old_name)
       obj_class_mappings << [old_name, new_name]
@@ -83,7 +83,7 @@ class Fiona6Export
   # analyze_attributes returns a map of renamed attributes (old name => new name).
   def analyze_attributes
     renamed_attributes_per_obj_class = {}
-    ObjClass.all.order(:obj_class_name).each do |obj_class|
+    get_obj_classes.each do |obj_class|
       rename_attributes = analyze_attributes_for_obj_class(obj_class)
       if rename_attributes.present?
         renamed_attributes_per_obj_class[obj_class.obj_class_name] = rename_attributes
@@ -138,6 +138,10 @@ class Fiona6Export
 
   def find_duplicates(array)
     array.select {|item| array.count(item) > 1 }.uniq
+  end
+
+  def get_obj_classes
+    ObjClass.where.not(obj_type: "template").order(:obj_class_name)
   end
 
   def get_objs
