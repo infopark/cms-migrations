@@ -174,10 +174,11 @@ class FionaExport
   def export_attrs(obj, dir_name, obj_class_mappings, attr_mappings)
     attrs = {
       "_id" => fiona8_id(obj.id),
-      "_last_changed" => fiona8_attr_pair("date", obj.last_changed_before_type_cast),
+      "_last_changed" => obj.last_changed_before_type_cast,
       "_obj_class" => obj_class_mappings.fetch(obj.obj_class),
       "_path" => obj.path,
-      "_permalink" => fiona8_attr_pair("string", obj.permalink),
+      "_permalink" => obj.permalink,
+
       "permitted_groups" => fiona8_attr_pair("stringlist", obj.permitted_groups),
       "suppress_export" => fiona8_attr_pair("string", (obj.suppress_export == 1 ? "yes" : "no")),
       "title" => fiona8_attr_pair("string", obj.title),
