@@ -96,7 +96,7 @@ class Fiona6Export
   def analyze_attributes_for_obj_class(obj_class)
     attr_mappings = [] # we'll collect pairs [old name, new name]
 
-    obj_class.attrs.order(:attribute_name).each do |attr|
+    get_attrs(obj_class).each do |attr|
       old_name = attr.attribute_name
       new_name = determine_new_attribute_name(old_name)
       attr_mappings << [old_name, new_name]
@@ -145,6 +145,10 @@ class Fiona6Export
     obj_classes.reject do |obj_class|
       Obj.where(obj_class: obj_class.obj_class_name).count == 0
     end
+  end
+
+  def get_attrs(obj_class)
+    obj_class.attrs.order(:attribute_name)
   end
 
   def get_objs
@@ -262,7 +266,7 @@ class Fiona6Export
       type = ObjClass.find_by_obj_class_name(name).obj_type
       name = renamed_obj_classes[name] || name
       defs.concat(generate_obj_class_definition(
-        name, type, obj_class.attrs.order(:attribute_name), renamed_attrs[name] || {}))
+        name, type, get_attrs(obj_class), renamed_attrs[name] || {}))
     end
     defs
   end
