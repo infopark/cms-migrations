@@ -289,12 +289,12 @@ class FionaExport
   end
 
   def generate_obj_class_definition(obj_class_name, obj_class_type, attrs, attr_mappings)
-    attr_names_to_types = {}
+    attr_names_to_type_defs = {}
     case obj_class_type
     when "image", "generic"
-      attr_names_to_types["blob"] = "binary"
+      attr_names_to_type_defs["blob"] = "binary"
     else
-      attr_names_to_types["body"] = "html"
+      attr_names_to_type_defs["body"] = "html"
     end
 
     attrs.each do |attr|
@@ -304,7 +304,7 @@ class FionaExport
       attr_name = attr_mappings[attr_name]
       next unless attr_name
       attr_name = attr_name[0] + attr_name.camelcase[1..-1]
-      attr_names_to_types[attr_name] =
+      attr_names_to_type_defs[attr_name] =
         case t = attr.attribute_type
         when "text"
           "string"
@@ -322,7 +322,7 @@ class FionaExport
         "filename" => "src/Objs/#{obj_class_name}/#{obj_class_name}ObjClass.js",
         "content" => render_tmpl(obj_class_tmpl, {
           "class_name" => obj_class_name,
-          "attrs" => attr_names_to_types,
+          "attrs" => attr_names_to_type_defs,
         }),
       },
     ]
