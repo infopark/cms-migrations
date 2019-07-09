@@ -45,3 +45,11 @@ Exporting all objs by type, if you onle want to migrate e.g. all User Objects, y
 ```shell
 rails runner 'Fiona7Export.new.export(dir_name: "export", options: {obj_class: "User", edited: false})'
 ```
+
+## Fiona 7 mode
+
+You can set the mode of the script by adding
+```shell
+FIONA7_MODE=legacy
+```
+in your .env file.
