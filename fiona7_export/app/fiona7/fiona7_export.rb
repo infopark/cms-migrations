@@ -134,7 +134,7 @@ class Fiona7Export
       return [{
         field: :_path,
         operator: :starts_with,
-        value: options[:path] || "/",
+        value: options[:path],
       }]
     elsif options[:obj_class]
       return [{
