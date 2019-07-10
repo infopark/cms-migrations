@@ -138,7 +138,7 @@ class Fiona7Export
       }]
     elsif options[:obj_class]
       return [{
-        field: :obj_class,
+        field: :_obj_class,
         operator: :equals,
         value: options[:obj_class],
       }]
