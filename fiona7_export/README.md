@@ -40,7 +40,7 @@ To export a subtree, use the obj path like:
 rails runner 'Fiona7Export.new.export(dir_name: "export", options: {path: "/path/to/obj", edited: false})'
 ```
 
-Exporting all objs by type, if you onle want to migrate e.g. all User Objects, you can use:
+Exporting all objs by type, if you only want to migrate e.g. all User Objects, you can use:
 
 ```shell
 rails runner 'Fiona7Export.new.export(dir_name: "export", options: {obj_class: "User", edited: false})'
