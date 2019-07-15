@@ -1,11 +1,11 @@
 cms:
   adapter: mysql2
   encoding: utf8
-  pool: 30
+  pool: 5
   reconnect: true
   database: <%= ENV['MYSQL_CMS_DB'] %>
   host: <%= ENV['MYSQL_HOST'] %>
-  port: 3306
+  port: <%= ENV['MYSQL_PORT'] || 3306 %>
   username: <%= ENV['MYSQL_CMS_USER'] %>
   password: <%= ENV['MYSQL_CMS_PASSWORD'] %>
 

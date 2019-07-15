@@ -2,13 +2,13 @@ require "addressable/uri"
 require "fileutils"
 
 class Fiona7Export
-  def export(dir_name:, edited: false)
+  def export(dir_name:, options: {path: "/", edited: false})
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
     obj_count = 0
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
-      workspace_name = edited ? "rtc" : "published"
-      get_obj_ids(workspace_name).each do |id|
+      workspace_name = options['edited'] ? "rtc" : "published"
+      get_obj_ids(workspace_name, options).each do |id|
         # The fiona7 gem redefines the Scrivito REST API in lib/fiona7/routers/rest_api.rb
         # by mapping it to database lookups in the rails connector tables.
         obj = Scrivito::CmsRestApi.task_unaware_request(:get, "workspaces/#{workspace_name}/objs/#{id}", {})
@@ -108,7 +108,7 @@ class Fiona7Export
     out_filename
   end
 
-  def get_obj_ids(workspace_name)
+  def get_obj_ids(workspace_name, options)
     continuation = nil
     ids = []
     begin
@@ -117,13 +117,7 @@ class Fiona7Export
         "workspaces/#{workspace_name}/objs/search",
         {
           continuation: continuation,
-          query: [
-            {
-              field: :_path,
-              operator: :starts_with,
-              value: "/",
-            },
-          ],
+          query: search_query(options)
         },
       )
       ids += w["results"].map {|r| r["id"]}
@@ -133,5 +127,29 @@ class Fiona7Export
 
   def normalize_path_component(s)
     Addressable::URI.normalize_component(s, Addressable::URI::CharacterClasses::UNRESERVED)
+  end
+
+  def search_query(options)
+    if options[:path]
+      return [{
+        field: :_path,
+        operator: :starts_with,
+        value: options[:path],
+      }]
+    elsif options[:obj_class]
+      return [{
+        field: :_obj_class,
+        operator: :equals,
+        value: options[:obj_class],
+      }]
+    elsif options[:id]
+      return [{
+        field: :id,
+        operator: :equals,
+        value: options[:id],
+      }]
+    else
+      raise "No options are set."
+    end
   end
 end
