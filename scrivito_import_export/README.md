@@ -19,11 +19,11 @@ export SCRIVITO_API_KEY=your_api_key
 ## Usage of the exporter
 
 ```
-bundle exec ruby scrivito_export.rb "./export"
+bundle exec ruby scrivito_export.rb "./export" | tee export.log
 ```
 
 ## Usage of the importer
 
 ```
-bundle exec ruby scrivito_import.rb "./export"
+bundle exec ruby scrivito_import.rb "./export" | tee import.log
 ```
