@@ -21,13 +21,27 @@ class ScrivitoImport
       obj = JSON.load(line)
       puts("[##{line_num}] Creating obj: #{obj['_obj_class']} #{obj['_path']}")
       attrs = import_attrs(api, obj, dir_name)
-      api.post("workspaces/#{workspace_id}/objs", "obj" => attrs)
+      retry_command { api.post("workspaces/#{workspace_id}/objs", "obj" => attrs) }
     end
 
     api.put("workspaces/#{workspace_id}/publish", nil)
   end
 
   private
+
+  def retry_command(&block)
+    begin
+      retries ||= 0
+      block.call
+    rescue => e
+      puts "  command failed: #{e}"
+      if (retries += 1) < 3
+        puts "  retrying"
+        retry
+      end
+      puts "  ignoring error"
+    end
+  end
 
   def import_attrs(api, attrs, dir_name)
     obj_id = attrs["_id"]
@@ -58,7 +72,7 @@ class ScrivitoImport
 
   def import_binary(api, filename, obj_id, dir_name)
     file = File.new(File.join(dir_name, filename))
-    api.upload_future_binary(file, File.basename(file), obj_id)
+    retry_command { api.upload_future_binary(file, File.basename(file), obj_id) }
   end
 
   def get_obj_ids(api, workspace_id)
