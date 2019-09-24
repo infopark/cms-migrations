@@ -19,12 +19,12 @@ class Fiona7Export
         # by mapping it to database lookups in the rails connector tables.
         obj = Scrivito::CmsRestApi.task_unaware_request(:get, "workspaces/#{workspace_name}/objs/#{id}", {})
         if obj["_obj_class"] =~ /Widget$/
-          log(logger, "Skipping #{idx+1}/#{total}: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})")
+          log(logger, "Skipping #{idx+1}/#{total}: #{obj['_path']} (#{obj['_obj_class']})")
           skipped += 1
           next
         end
         obj_attrs = export_attrs(logger, obj["_id"], obj, dir_name)
-        log(logger, "Exporting #{idx+1}/#{total}: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})")
+        log(logger, "Exporting #{idx+1}/#{total}: #{obj['_path']} (#{obj['_obj_class']})")
         file.write(JSON.generate(obj_attrs))
         file.write("\n")
         exported += 1
