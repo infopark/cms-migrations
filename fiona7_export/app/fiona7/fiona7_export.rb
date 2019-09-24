@@ -6,26 +6,39 @@ class Fiona7Export
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
     FileUtils.mkdir_p(Rails.root + "tmp/cache")
-    obj_count = 0
+    exported = 0
+    skipped = 0
+    total = 0
+    logger = Logger.new(File.join(dir_name, "export.log"))
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
       workspace_name = options[:edited] ? "rtc" : "published"
-      obj_ids = get_obj_ids(workspace_name, options)
+      obj_ids = get_obj_ids(logger, workspace_name, options)
+      total = obj_ids.size
       obj_ids.each_with_index do |id, idx|
         # The fiona7 gem redefines the Scrivito REST API in lib/fiona7/routers/rest_api.rb
         # by mapping it to database lookups in the rails connector tables.
         obj = Scrivito::CmsRestApi.task_unaware_request(:get, "workspaces/#{workspace_name}/objs/#{id}", {})
-        next if obj["_obj_class"] =~ /Widget$/
-        obj_attrs = export_attrs(obj["_id"], obj, dir_name)
-        puts "Exporting #{idx+1}/#{obj_ids.size}: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})"
+        if obj["_obj_class"] =~ /Widget$/
+          log(logger, "Skipping #{idx+1}/#{total}: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})")
+          skipped += 1
+          next
+        end
+        obj_attrs = export_attrs(logger, obj["_id"], obj, dir_name)
+        log(logger, "Exporting #{idx+1}/#{total}: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})")
         file.write(JSON.generate(obj_attrs))
         file.write("\n")
-        obj_count += 1
+        exported += 1
       end
     end
-    puts "Exported #{obj_count} objects to #{dir_name}/objs.json"
+    log(logger, "Exported #{exported} objects to #{dir_name}/objs.json, skipped #{skipped}, total #{total}")
   end
 
   private
+
+  def log(logger, msg)
+    puts(msg)
+    logger.info(msg)
+  end
 
   def fiona8_id(id)
     case id
@@ -36,11 +49,11 @@ class Fiona7Export
     end
   end
 
-  def export_attrs(obj_id, attrs, dir_name)
+  def export_attrs(logger, obj_id, attrs, dir_name)
     attrs.each_with_object({}) do |(k, v), h|
       if k == "_widget_pool"
         h[k] = v.each_with_object({}) do |(k1, v1), h1|
-          h1[k1] = export_attrs(obj_id, v1, dir_name)
+          h1[k1] = export_attrs(logger, obj_id, v1, dir_name)
         end
       elsif k == "_id"
         h[k] = fiona8_id(v)
@@ -51,10 +64,10 @@ class Fiona7Export
         case v.first
         when "referencelist", "linklist", "stringlist"
           if v.last.present?
-            puts "Warning: obj #{obj_id} contains an uppercase attribute #{k} (type #{v.first}, value #{v.last.inspect})"
+            log(logger, "Warning: obj #{obj_id} contains an uppercase attribute #{k} (type #{v.first}, value #{v.last.inspect})")
           end
         else
-          puts "Warning: obj #{obj_id} contains an uppercase attribute #{k} (type #{v.first}, value #{v.last.inspect})"
+          log(logger, "Warning: obj #{obj_id} contains an uppercase attribute #{k} (type #{v.first}, value #{v.last.inspect})")
         end
       else
         case v.first
@@ -110,10 +123,10 @@ class Fiona7Export
     out_filename
   end
 
-  def get_obj_ids(workspace_name, options)
+  def get_obj_ids(logger, workspace_name, options)
     continuation = nil
     ids = []
-    puts "get_obj_ids: "
+    log(logger, "get_obj_ids: ")
     begin
       STDOUT.write("."); STDOUT.flush
       w = Scrivito::CmsRestApi.task_unaware_request(
@@ -126,7 +139,7 @@ class Fiona7Export
       )
       ids += w["results"].map {|r| r["id"]}
     end while (continuation = w["continuation"]).present?
-    puts " DONE, found #{ids.size} objs"
+    log(logger, " DONE, found #{ids.size} objs")
     ids
   end
 
