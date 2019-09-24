@@ -8,7 +8,7 @@ class Fiona7Export
     FileUtils.mkdir_p(Rails.root + "tmp/cache")
     obj_count = 0
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
-      workspace_name = options['edited'] ? "rtc" : "published"
+      workspace_name = options[:edited] ? "rtc" : "published"
       get_obj_ids(workspace_name, options).each do |id|
         # The fiona7 gem redefines the Scrivito REST API in lib/fiona7/routers/rest_api.rb
         # by mapping it to database lookups in the rails connector tables.
