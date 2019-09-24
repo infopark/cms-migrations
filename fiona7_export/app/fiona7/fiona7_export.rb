@@ -5,6 +5,7 @@ class Fiona7Export
   def export(dir_name:, options: {path: "/", edited: false})
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
+    FileUtils.mkdir_p(Rails.root + "tmp/cache")
     obj_count = 0
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
       workspace_name = options['edited'] ? "rtc" : "published"
