@@ -126,7 +126,7 @@ class Fiona7Export
       )
       ids += w["results"].map {|r| r["id"]}
     end while (continuation = w["continuation"]).present?
-    puts " DONE"
+    puts " DONE, found #{ids.size} objs"
     ids
   end
 
