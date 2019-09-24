@@ -102,7 +102,7 @@ class Fiona7Export
   def export_binary(binary_id, dir_name)
     blob_id = normalize_path_component(binary_id)
     blob = Fiona7::BinaryHandling::MetaBinary.new(blob_id, false)
-    return nil unless blob.filepath
+    return nil unless blob.present? && blob.filepath
     out_filename = "#{blob_id.parameterize}-#{blob.filename}"
     FileUtils.cp(blob.filepath, File.join(dir_name, out_filename))
     out_filename
