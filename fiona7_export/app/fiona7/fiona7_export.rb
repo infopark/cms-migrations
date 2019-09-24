@@ -9,13 +9,14 @@ class Fiona7Export
     obj_count = 0
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
       workspace_name = options[:edited] ? "rtc" : "published"
-      get_obj_ids(workspace_name, options).each do |id|
+      obj_ids = get_obj_ids(workspace_name, options)
+      obj_ids.each_with_index do |id, idx|
         # The fiona7 gem redefines the Scrivito REST API in lib/fiona7/routers/rest_api.rb
         # by mapping it to database lookups in the rails connector tables.
         obj = Scrivito::CmsRestApi.task_unaware_request(:get, "workspaces/#{workspace_name}/objs/#{id}", {})
         next if obj["_obj_class"] =~ /Widget$/
         obj_attrs = export_attrs(obj["_id"], obj, dir_name)
-        puts "Exporting: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})"
+        puts "Exporting #{idx+1}/#{obj_ids.size}: #{obj_attrs['_path']} (#{obj_attrs['_obj_class']})"
         file.write(JSON.generate(obj_attrs))
         file.write("\n")
         obj_count += 1
