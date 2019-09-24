@@ -103,7 +103,7 @@ GEM
     minitest (5.11.3)
     multi_json (1.13.1)
     multipart-post (2.0.0)
-    mysql2 (0.3.16)
+    mysql2 (0.3.21)
     mysql_blob_streaming (2.2.1)
       mysql2 (>= 0.3.16, < 0.4.0)
     nokogiri (1.8.4)
@@ -190,7 +190,7 @@ DEPENDENCIES
   dotenv-rails
   infopark_fiona7 (= 1.6.1.1.1)
   jbuilder (~> 2.0)
-  mysql2 (= 0.3.16)
+  mysql2 (~> 0.3.16)
   mysql_blob_streaming
   pry
   rails (= 4.2.8)
