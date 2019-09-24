@@ -111,7 +111,9 @@ class Fiona7Export
   def get_obj_ids(workspace_name, options)
     continuation = nil
     ids = []
+    puts "get_obj_ids: "
     begin
+      STDOUT.write("."); STDOUT.flush
       w = Scrivito::CmsRestApi.task_unaware_request(
         :get,
         "workspaces/#{workspace_name}/objs/search",
@@ -122,6 +124,7 @@ class Fiona7Export
       )
       ids += w["results"].map {|r| r["id"]}
     end while (continuation = w["continuation"]).present?
+    puts " DONE"
     ids
   end
 
