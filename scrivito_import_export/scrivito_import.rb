@@ -71,8 +71,12 @@ class ScrivitoImport
   end
 
   def import_binary(api, filename, obj_id, dir_name)
-    file = File.new(File.join(dir_name, filename))
-    retry_command { api.upload_future_binary(file, File.basename(file), obj_id) }
+    path = File.join(dir_name, filename)
+    mime_type = %x(file --brief --mime-type #{path}).strip
+    file = File.new(path)
+    retry_command {
+      api.upload_future_binary(file, File.basename(file), obj_id, content_type: mime_type)
+    }
   end
 
   def get_obj_ids(api, workspace_id)

@@ -28,9 +28,9 @@ class RestApi
     request_cms_api(Net::HTTP::Delete, path, payload)
   end
 
-  def upload_future_binary(file_to_upload, filename, obj_id)
+  def upload_future_binary(file_to_upload, filename, obj_id, content_type: nil)
     permission = get("blobs/upload_permission")
-    upload = upload_file(file_to_upload, nil, permission)
+    upload = upload_file(file_to_upload, content_type, permission)
     put("blobs/activate_upload", filename: filename, upload: upload, obj_id: obj_id)
   end
 
