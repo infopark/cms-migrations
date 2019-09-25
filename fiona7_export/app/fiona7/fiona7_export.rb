@@ -23,7 +23,7 @@ class Fiona7Export
           skipped += 1
           next
         end
-        obj_attrs = export_attrs(logger, obj["_id"], obj, dir_name)
+        obj_attrs = export_attrs(logger, obj["_id"], obj, dir_name, {})
         log(logger, "Exporting #{idx+1}/#{total}: #{obj['_path']} (#{obj['_obj_class']})")
         file.write(JSON.generate(obj_attrs))
         file.write("\n")
@@ -49,11 +49,23 @@ class Fiona7Export
     end
   end
 
-  def export_attrs(logger, obj_id, attrs, dir_name)
+  def widget_id(id, widget_id_mapping)
+    if widget_id_mapping.key?(id)
+      return widget_id_mapping[id]
+    end
+    if id !~ /\A[[:xdigit:]]{1,16}\z/
+      widget_id_mapping[id] = SecureRandom.hex(8)
+      return widget_id_mapping[id]
+    end
+    id
+  end
+
+  def export_attrs(logger, obj_id, attrs, dir_name, widget_id_mapping)
     attrs.each_with_object({}) do |(k, v), h|
       if k == "_widget_pool"
         h[k] = v.each_with_object({}) do |(k1, v1), h1|
-          h1[k1] = export_attrs(logger, obj_id, v1, dir_name)
+          k1 = widget_id(k1, widget_id_mapping)
+          h1[k1] = export_attrs(logger, obj_id, v1, dir_name, widget_id_mapping)
         end
       elsif k == "_id"
         h[k] = fiona8_id(v)
@@ -92,6 +104,9 @@ class Fiona7Export
         when "multienum", "stringlist"
           value = v.last.to_a.reject(&:blank?)
           h[k] = ["stringlist", value] if value.present?
+        when "widgetlist"
+          value = v.last.to_a.map {|wid| widget_id(wid, widget_id_mapping)}
+          h[k] = ["widgetlist", value] if value.present?
         else
           h[k] = v if v.last.present?
         end
