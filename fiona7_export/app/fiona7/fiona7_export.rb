@@ -89,8 +89,9 @@ class Fiona7Export
           h[k] = ["html", export_html(v.last)] if v.last.present?
         when "enum"
           h[k] = ["string", v.last] if v.last.present?
-        when "multienum"
-          h[k] = ["stringlist", v.last] if v.last.present?
+        when "multienum", "stringlist"
+          value = v.last.to_a.reject(&:blank?)
+          h[k] = ["stringlist", value] if value.present?
         else
           h[k] = v if v.last.present?
         end
