@@ -30,8 +30,9 @@ class RestApi
 
   def upload_future_binary(file_to_upload, filename, obj_id, content_type: nil)
     permission = get("blobs/upload_permission")
-    upload = upload_file(file_to_upload, content_type, permission)
-    put("blobs/activate_upload", filename: filename, upload: upload, obj_id: obj_id)
+    upload = upload_file(file_to_upload, nil, permission)
+    put("blobs/activate_upload",
+        filename: filename, content_type: content_type, upload: upload, obj_id: obj_id)
   end
 
   def normalize_path_component(s)
