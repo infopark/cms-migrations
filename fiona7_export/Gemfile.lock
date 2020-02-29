@@ -139,7 +139,7 @@ GEM
       activesupport (= 4.2.8)
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
-    rake (12.3.1)
+    rake (13.0.1)
     rsolr (1.0.13)
       builder (>= 2.1.2)
     scrivito (1.6.1)
