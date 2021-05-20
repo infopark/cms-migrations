@@ -84,7 +84,7 @@ GEM
     mysql2 (0.3.16)
     mysql_blob_streaming (2.2.1)
       mysql2 (>= 0.3.16, < 0.4.0)
-    nokogiri (1.11.3)
+    nokogiri (1.11.5)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
     pry (0.12.2)
