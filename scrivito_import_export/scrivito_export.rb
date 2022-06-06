@@ -12,6 +12,14 @@ class ScrivitoExport
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
 
+    custom_visibility_categories = api.get("visibility_categories")["results"]
+
+    if custom_visibility_categories.any? 
+      File.open(File.join(dir_name, "custom_visibility_categories.json"), "w") do |file|
+        file.write(JSON.generate(custom_visibility_categories))
+      end
+    end
+
     obj_count = 0
     File.open(File.join(dir_name, "objs.json"), "w") do |file|
       rev_id, obj_ids = get_obj_ids(api)
