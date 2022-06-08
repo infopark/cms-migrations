@@ -12,7 +12,8 @@ class ScrivitoExport
     raise "file '#{dir_name}' exists" if File.exist?(dir_name)
     FileUtils.mkdir_p(dir_name)
 
-    custom_visibility_categories = api.get("visibility_categories")["results"]
+    visibility_categories_response = api.get("visibility_categories") || {}
+    custom_visibility_categories = visibility_categories_response["results"] || []
 
     if custom_visibility_categories.any? 
       File.open(File.join(dir_name, "custom_visibility_categories.json"), "w") do |file|
