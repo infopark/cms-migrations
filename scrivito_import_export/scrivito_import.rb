@@ -95,26 +95,25 @@ class ScrivitoImport
   def import_visibility_categories_and_generate_mapping(api, dir_name)
     visibility_categories_ids_mapping = {}
     custom_visibility_categories_file = File.join(dir_name, "custom_visibility_categories.json")
-    if (File.exist?(custom_visibility_categories_file))
+    if File.exist?(custom_visibility_categories_file)
       custom_visibility_categories = JSON.parse(File.read(custom_visibility_categories_file))
       custom_visibility_categories.each do |visibility_category|
-        response = api.post("visibility_categories", {
-          "groups" => visibility_category["groups"], 
-          "title" => visibility_category["title"],
-          "description" => visibility_category["description"],
-          })
+        response = api.post(
+          "visibility_categories", 
+          visibility_category.slice("groups", "title", "description")
+        )
         original_visibility_category_id = visibility_category["id"]
         visibility_categories_ids_mapping[original_visibility_category_id] = response["id"]
       end
     end
-    visibility_categories_ids_mapping
+    visibility_categories_ids_mapping.presence
   end
 
   def update_restriction(restriction_attribute, visibility_categories_ids_mapping)
-    return if restriction_attribute.nil? || restriction_attribute.empty?
+    return if !restriction_attribute.present?
 
-    restriction_attribute.map! do |restriction_id|
-      visibility_categories_ids_mapping[restriction_id] || restriction_id
+    return restriction_attribute.map do |restriction_id|
+      visibility_categories_ids_mapping.fetch(restriction_id) { restriction_id }
     end
   end
 end

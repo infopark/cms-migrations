@@ -13,9 +13,9 @@ class ScrivitoExport
     FileUtils.mkdir_p(dir_name)
 
     visibility_categories_response = api.get("visibility_categories") || {}
-    custom_visibility_categories = visibility_categories_response["results"] || []
+    custom_visibility_categories = visibility_categories_response.fetch("results")
 
-    if custom_visibility_categories.any? 
+    if custom_visibility_categories.present? 
       File.open(File.join(dir_name, "custom_visibility_categories.json"), "w") do |file|
         file.write(JSON.generate(custom_visibility_categories))
       end
