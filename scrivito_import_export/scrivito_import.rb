@@ -23,7 +23,7 @@ class ScrivitoImport
       obj = JSON.load(line)
       puts("[##{line_num}] Creating obj: #{obj['_obj_class']} #{obj['_path']}")
       attrs = import_attrs(api, obj, dir_name)
-      update_restriction(attrs["_restriction"], visibility_categories_ids_mapping)
+      update_restriction(attrs, visibility_categories_ids_mapping)
       retry_command { api.post("workspaces/#{workspace_id}/objs", "obj" => attrs) }
     end
 
@@ -109,12 +109,15 @@ class ScrivitoImport
     visibility_categories_ids_mapping.presence
   end
 
-  def update_restriction(restriction_attribute, visibility_categories_ids_mapping)
+  def update_restriction(attrs, visibility_categories_ids_mapping)
+    restriction_attribute = attrs["_restriction"]
     return if !restriction_attribute.present?
 
-    return restriction_attribute.map do |restriction_id|
+    updated_restriction = restriction_attribute.map do |restriction_id|
       visibility_categories_ids_mapping.fetch(restriction_id) { restriction_id }
     end
+
+    attrs["_restriction"] = updated_restriction
   end
 end
 
