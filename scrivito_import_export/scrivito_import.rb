@@ -8,6 +8,8 @@ class ScrivitoImport
     api_key = ENV.fetch("SCRIVITO_API_KEY")
     api = RestApi.new(base_url, tenant, api_key)
 
+    visibility_categories_ids_mapping = import_visibility_categories_and_generate_mapping(api, dir_name)
+
     workspace_id = api.post("workspaces", "workspace" => { "title" => "loader (do not touch)"})["id"]
     puts("Created loader working copy #{workspace_id}")
     old_obj_ids = get_obj_ids(api, workspace_id)
@@ -21,6 +23,7 @@ class ScrivitoImport
       obj = JSON.load(line)
       puts("[##{line_num}] Creating obj: #{obj['_obj_class']} #{obj['_path']}")
       attrs = import_attrs(api, obj, dir_name)
+      update_restriction(attrs, visibility_categories_ids_mapping)
       retry_command { api.post("workspaces/#{workspace_id}/objs", "obj" => attrs) }
     end
 
@@ -87,6 +90,34 @@ class ScrivitoImport
       ids += w["results"].map {|r| r["id"]}
     end while (continuation = w["continuation"]).present?
     ids
+  end
+
+  def import_visibility_categories_and_generate_mapping(api, dir_name)
+    visibility_categories_ids_mapping = {}
+    custom_visibility_categories_file = File.join(dir_name, "custom_visibility_categories.json")
+    if File.exist?(custom_visibility_categories_file)
+      custom_visibility_categories = JSON.parse(File.read(custom_visibility_categories_file))
+      custom_visibility_categories.each do |visibility_category|
+        response = api.post(
+          "visibility_categories", 
+          visibility_category.slice("groups", "title", "description")
+        )
+        original_visibility_category_id = visibility_category["id"]
+        visibility_categories_ids_mapping[original_visibility_category_id] = response["id"]
+      end
+    end
+    visibility_categories_ids_mapping.presence
+  end
+
+  def update_restriction(attrs, visibility_categories_ids_mapping)
+    restriction_attribute = attrs["_restriction"]
+    return if !restriction_attribute.present?
+
+    updated_restriction = restriction_attribute.map do |restriction_id|
+      visibility_categories_ids_mapping.fetch(restriction_id) { restriction_id }
+    end
+
+    attrs["_restriction"] = updated_restriction
   end
 end
 
