@@ -1,5 +1,7 @@
 require "active_support/all"
 require "fileutils"
+require 'dotenv/load'
+
 require_relative "rest_api"
 
 class ScrivitoExport
