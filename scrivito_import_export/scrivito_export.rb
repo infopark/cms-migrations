@@ -1,5 +1,7 @@
 require "active_support/all"
 require "fileutils"
+require 'dotenv/load'
+
 require_relative "rest_api"
 
 class ScrivitoExport
@@ -83,7 +85,7 @@ class ScrivitoExport
     continuation = nil
     ids = []
     begin
-      w = api.get("workspaces/published/objs/search", "continuation" => continuation)
+      w = api.get("workspaces/published/objs/search", { "continuation": continuation, "options": {"site_aware": true}})
       ids += w["results"].map {|r| r["id"]}
     end while (continuation = w["continuation"]).present?
     after_published_rev_id = api.get("workspaces/published")["revision_id"]
