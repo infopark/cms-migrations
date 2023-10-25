@@ -99,7 +99,7 @@ class ScrivitoImport
       custom_visibility_categories = JSON.parse(File.read(custom_visibility_categories_file))
       custom_visibility_categories.each do |visibility_category|
         response = api.post(
-          "visibility_categories", 
+          "visibility_categories",
           visibility_category.slice("groups", "title", "description")
         )
         original_visibility_category_id = visibility_category["id"]
