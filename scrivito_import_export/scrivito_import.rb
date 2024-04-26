@@ -88,7 +88,8 @@ class ScrivitoImport
     continuation = nil
     ids = []
     begin
-      w = api.get("workspaces/#{workspace_id}/objs/search", "continuation" => continuation)
+      # w = api.get("workspaces/#{workspace_id}/objs/search", "continuation" => continuation)
+      w = api.get("workspaces/#{workspace_id}/objs/search", { "continuation": continuation, "options": {"site_aware": true}})
       ids += w["results"].map {|r| r["id"]}
     end while (continuation = w["continuation"]).present?
     ids
