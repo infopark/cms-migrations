@@ -1,4 +1,6 @@
 require "active_support/all"
+require 'dotenv/load'
+
 require_relative "rest_api"
 
 class ScrivitoImport
